@@ -4,8 +4,6 @@ import tempfile
 from langchain_groq import ChatGroq
 #from langchain_community.embeddings import SentenceTransformerEmbeddings
 from langchain_huggingface import HuggingFaceEmbeddings
-import chromadb
-from chromadb.config import Settings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import PyPDFLoader, CSVLoader, TextLoader
 from langchain.prompts import PromptTemplate
