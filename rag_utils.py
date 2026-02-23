@@ -4,7 +4,6 @@ import tempfile
 from langchain_groq import ChatGroq
 #from langchain_community.embeddings import SentenceTransformerEmbeddings
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_chroma import Chroma
 import chromadb
 from chromadb.config import Settings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -20,64 +19,9 @@ from pathlib import Path
 #from elevenlabs import save
 from gtts import gTTS
 
-
-
 os.environ["CHROMA_TELEMETRY"] = "false"
-# Initialize sentence transformer embeddings (free)
-embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-
-#initialize Vector Store Path
-
-VECTOR_STORE_PATH = "vector_store"
-HISTORY_FILE = os.path.join(VECTOR_STORE_PATH, "conversation_history.json")
-
-def vector_db():
-    return Chroma(embedding_function=embeddings, persist_directory=VECTOR_STORE_PATH)
 
 load_dotenv()
-
-chromadb.api.client.SharedSystemClient.clear_system_cache()
-
-#File Loader & Processing
-
-def process_files(files, chunk_size=1000, chunk_overlap=100):
-# Check if the directory exists
-   
-    if os.path.exists(VECTOR_STORE_PATH) == False:
-        os.makedirs(VECTOR_STORE_PATH, exist_ok=True)
-
-    docs = []
-    for file in files:
-        file_ext = os.path.splitext(file.name)[-1].lower()
-        with tempfile.NamedTemporaryFile(delete=False) as tmp:
-            tmp.write(file.read())
-            tmp_path = tmp.name
-        
-        if file_ext == ".pdf":
-            loader = PyPDFLoader(tmp_path)
-        elif file_ext == ".csv":
-            loader = CSVLoader(tmp_path)
-        elif file_ext == ".txt":
-            loader = TextLoader(tmp_path)
-        else:
-            continue
-        docs.extend(loader.load())
-
-# Chunking
-    splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-    chunks = splitter.split_documents(docs)
-
-    vectordb = vector_db()
-
-# ⚠️ This deletes ALL vectors in the default collection
-
-    collection = vectordb._collection
-    ids = collection.get()["ids"]
-    if ids:
-        collection.delete(ids=ids)
-
-    vectordb.add_documents(documents=chunks)
-
 
 def ask_question(query, k=3, file_flag=False):
 
