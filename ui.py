@@ -1,6 +1,7 @@
 import streamlit as st
 from rag_utils import ask_question, audio_transcript, text_to_speech, text_to_speech2
 from audio_recorder_streamlit import audio_recorder
+from streamlit_mic_recorder import mic_recorder
 from streamlit_float import *
 import base64
 import os
@@ -16,7 +17,7 @@ float_init()
 page_element="""
 <style>
 [data-testid="stAppViewContainer"]{
-  background-image: url("https://cdn.wallpapersafari.com/88/75/cLUQqJ.jpg");
+  background-image: url("https://images.unsplash.com/flagged/photo-1551301622-6fa51afe75a9?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D");
   background-size: cover;
 }
 [data-testid="stHeader"]{
@@ -75,13 +76,24 @@ for message in st.session_state.messages:
 #with footer_container:
 with button_container:
     # Create three columns inside the container col_left, col_center, col_right = st.columns([1,2,1])
-    col_left, col_center, col_right = st.columns([1,0.112,1])
+    col_left, col_center, col_right = st.columns([4,1,4])
     with col_center:
         # Show transparent mic icon 
-        audio_bytes = audio_recorder(text="",
-        recording_color="#e74c3c",
-        neutral_color="#3498db",    
-        icon_size="3x", pause_threshold=10.0, sample_rate=41_000)
+        #audio_bytes = audio_recorder(text="",
+        #recording_color="#e74c3c",
+        #neutral_color="#3498db",    
+        #icon_size="3x", pause_threshold=10.0, sample_rate=41_000)
+    
+        audio_bytes=mic_recorder(
+            start_prompt="🎙️ Record",
+            stop_prompt="⏹️ Stop",
+            just_once=False,
+            use_container_width=True,
+            callback=None,
+            args=(),
+            kwargs={},
+            key=None
+        )
 
 # Float the container to the bottom center
 button_container.float("bottom: 0.5rem; display: flex; justify-content: center; background-color: transparent; border: none; box-shadow: none;") 
@@ -91,7 +103,7 @@ if audio_bytes:
         # Write the audio bytes to a temporary file
         webm_file_path = "temp_audio.mp3"
         with open(webm_file_path, "wb") as f:
-            f.write(audio_bytes)
+            f.write(audio_bytes["bytes"])
 
         # Convert the audio to text using the speech_to_text function
         transcript = audio_transcript(webm_file_path)
